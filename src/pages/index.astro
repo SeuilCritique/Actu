@@ -1,50 +1,314 @@
+
 ---
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const contents = [
+  {
+    type: 'Vidéo',
+    title: 'Un Reel à découvrir',
+    description: 'Remplace ce lien par celui de ton Reel Instagram.',
+    date: 'INSTAGRAM',
+    url: 'https://www.instagram.com/reel/REMPLACE_MOI/',
+    embed: true,
+  },
+  {
+    type: 'Image',
+    title: 'Étude visuelle',
+    description: 'Une image, une référence ou une création graphique.',
+    date: 'IMAGE',
+    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=85',
+    url: '',
+  },
+  {
+    type: 'Article',
+    title: 'Notes de recherche',
+    description: 'Une réflexion, une idée ou un texte à partager.',
+    date: 'TEXTE',
+    body: 'Ajoute ici ton texte complet. Tu peux développer une idée, partager une analyse ou présenter un projet.',
+    url: '',
+  },
+];
 ---
 
 <!doctype html>
-<html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-	</head>
-	<body>
-		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This
-				template serves as a lightweight, minimally-styled starting point for anyone looking to build
-				a personal website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to <a href="https://docs.astro.build/"
-					>read the docs
-				</a> or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out <a
-					href="https://github.com/Charca/astro-blog-template"
-					>astro-blog-template
-				</a> by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
-		</main>
-		<Footer />
-	</body>
+<html lang="fr">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#11110f" />
+    <style is:global>
+      :root {
+        color-scheme: dark;
+        --bg: #11110f;
+        --panel: #1b1b18;
+        --text: #f0efe8;
+        --muted: #aaa99f;
+        --line: #383830;
+        --accent: #d5ff65;
+      }
+
+      * { box-sizing: border-box; }
+      html { background: var(--bg); scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, system-ui, sans-serif;
+      }
+      a { color: inherit; }
+      main.archive {
+        width: min(1440px, calc(100% - 48px));
+        margin: 0 auto;
+        padding-bottom: 64px;
+      }
+      .hero {
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: clamp(28px, 7vw, 84px);
+        margin: 24px 0 76px;
+        border-radius: 12px;
+        overflow: hidden;
+        background:
+          linear-gradient(90deg, rgba(0,0,0,.75), rgba(0,0,0,.08)),
+          linear-gradient(0deg, rgba(0,0,0,.45), transparent),
+          url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=85') center 48% / cover,
+          #292923;
+      }
+      .eyebrow {
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: .16em;
+        font-size: .72rem;
+        font-weight: 700;
+      }
+      .hero h1 {
+        margin: 18px 0;
+        max-width: 1000px;
+        font-size: clamp(3.2rem, 9vw, 7.5rem);
+        line-height: .88;
+        letter-spacing: -.075em;
+        font-weight: 750;
+      }
+      .hero p { max-width: 520px; color: #e0dfd7; line-height: 1.7; }
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+      .section-head h2 {
+        margin: 10px 0 0;
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        letter-spacing: -.05em;
+      }
+      #count { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+      .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }
+      .filters button, .read-more {
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        background: transparent;
+        color: var(--text);
+        padding: 9px 16px;
+        cursor: pointer;
+        font: inherit;
+        font-size: .82rem;
+      }
+      .filters button.active, .filters button:hover {
+        color: var(--bg);
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+      .card {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+      }
+      .media {
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #252520;
+      }
+      .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .media iframe { width: 100%; height: 100%; border: 0; }
+      .media.instagram { aspect-ratio: 4 / 5; }
+      .article-cover {
+        padding: 24px;
+        align-items: end;
+        justify-content: start;
+        background: linear-gradient(135deg, #37392e, #171815);
+      }
+      .article-cover span {
+        font-size: clamp(1.6rem, 3vw, 2.6rem);
+        line-height: 1;
+        letter-spacing: -.05em;
+        font-weight: 750;
+      }
+      .card-body { padding: 18px; }
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--muted);
+        font-size: .7rem;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+      }
+      .card h3 { margin: 12px 0 8px; font-size: 1.2rem; letter-spacing: -.025em; }
+      .card p { margin: 0; color: #c5c4bb; font-size: .9rem; line-height: 1.6; }
+      .source {
+        display: inline-block;
+        margin-top: 16px;
+        color: var(--accent);
+        font-size: .82rem;
+        text-decoration: none;
+      }
+      .source:hover { text-decoration: underline; }
+      .read-more { margin-top: 15px; }
+      .article-body {
+        display: none;
+        padding: 0 18px 20px;
+        color: #d5d4cb;
+        line-height: 1.7;
+        white-space: pre-line;
+      }
+      .article-body.open { display: block; }
+      .empty { display: none; color: var(--muted); padding: 30px 0; }
+      @media (max-width: 850px) {
+        .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .hero { min-height: 320px; margin-bottom: 52px; }
+      }
+      @media (max-width: 560px) {
+        main.archive { width: calc(100% - 24px); }
+        .grid { grid-template-columns: 1fr; gap: 14px; }
+        .hero { min-height: 300px; padding: 25px; margin: 16px 0 44px; }
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+
+    <main class="archive">
+      <section class="hero">
+        <div class="eyebrow">Archives visuelles · 2026</div>
+        <h1>Images,<br />idées & traces.</h1>
+        <p>Une collection en mouvement. Vidéos, images et textes réunis au même endroit.</p>
+      </section>
+
+      <section aria-labelledby="collection-title">
+        <div class="section-head">
+          <div>
+            <div class="eyebrow">La collection</div>
+            <h2 id="collection-title">Explorer les contenus</h2>
+          </div>
+          <span id="count" aria-live="polite"></span>
+        </div>
+
+        <nav class="filters" aria-label="Filtrer les contenus">
+          <button class="active" type="button" data-filter="Tous">Tout</button>
+          <button type="button" data-filter="Vidéo">Vidéos</button>
+          <button type="button" data-filter="Image">Images</button>
+          <button type="button" data-filter="Article">Articles</button>
+        </nav>
+
+        <div class="grid" id="grid">
+          {contents.map((item, index) => (
+            <article class="card" data-type={item.type}>
+              {item.type === 'Vidéo' && item.embed ? (
+                <div class="media instagram">
+                  <iframe
+                    src={`https://www.instagram.com/reel/${item.url.split('/reel/')[1]?.split('/')[0]}/embed`}
+                    loading="lazy"
+                    title={item.title}
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              ) : item.image ? (
+                <div class="media">
+                  <img src={item.image} alt={item.title} loading="lazy" />
+                </div>
+              ) : (
+                <div class="media article-cover"><span>{item.title}</span></div>
+              )}
+
+              <div class="card-body">
+                <div class="meta"><span>{item.type}</span><span>{item.date}</span></div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                {item.url && (
+                  <a class="source" href={item.url} target="_blank" rel="noopener noreferrer">
+                    Voir la source ↗
+                  </a>
+                )}
+                {item.type === 'Article' && item.body && (
+                  <button class="read-more" type="button" data-article={index}>Lire l’article</button>
+                )}
+              </div>
+              {item.type === 'Article' && item.body && (
+                <div class="article-body" id={`article-${index}`}>{item.body}</div>
+              )}
+            </article>
+          ))}
+        </div>
+        <p class="empty" id="empty">Aucun contenu dans cette catégorie.</p>
+      </section>
+    </main>
+
+    <script>
+      const grid = document.querySelector('#grid');
+      const count = document.querySelector('#count');
+      const empty = document.querySelector('#empty');
+      const cards = [...document.querySelectorAll('.card')];
+      let activeFilter = 'Tous';
+
+      function updateGallery() {
+        let visible = 0;
+        cards.forEach((card) => {
+          const show = activeFilter === 'Tous' || card.dataset.type === activeFilter;
+          card.hidden = !show;
+          if (show) visible++;
+        });
+        count.textContent = `${visible} contenu${visible > 1 ? 's' : ''}`;
+        empty.style.display = visible ? 'none' : 'block';
+      }
+
+      document.querySelectorAll('[data-filter]').forEach((button) => {
+        button.addEventListener('click', () => {
+          activeFilter = button.dataset.filter;
+          document.querySelectorAll('[data-filter]').forEach((item) => {
+            item.classList.toggle('active', item === button);
+          });
+          updateGallery();
+        });
+      });
+
+      document.querySelectorAll('[data-article]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const body = document.querySelector(`#article-${button.dataset.article}`);
+          body.classList.toggle('open');
+          button.textContent = body.classList.contains('open') ? 'Fermer l’article' : 'Lire l’article';
+        });
+      });
+
+      updateGallery();
+    </script>
+
+    <Footer />
+  </body>
 </html>
