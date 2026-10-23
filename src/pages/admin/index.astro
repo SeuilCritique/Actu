@@ -1,0 +1,157 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+---
+<!doctype html>
+<html lang="fr">
+<head>
+  <BaseHead title={`Administration · ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <style is:global>
+    :root{color-scheme:dark;--bg:#11110f;--panel:#1b1b18;--text:#f0efe8;--muted:#aaa99f;--line:#383830;--accent:#d5ff65;--danger:#ff8178}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}a{color:var(--accent)}main{width:min(1100px,calc(100% - 32px));margin:40px auto 80px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;font-weight:700}.top h1{font-size:clamp(2rem,5vw,3.5rem);letter-spacing:-.06em;margin:8px 0}.panel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:24px;margin:18px 0}.hidden{display:none!important}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}label{font-size:.85rem;color:var(--muted)}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px;background:#11110f;color:var(--text);font:inherit}textarea{min-height:100px;resize:vertical}button,.button{border:1px solid var(--line);border-radius:99px;padding:10px 16px;background:transparent;color:var(--text);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700}button.danger{color:var(--danger);border-color:#75413d}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.message{min-height:1.4em;color:var(--muted);font-size:.9rem;margin:12px 0 0}.message.error{color:var(--danger)}.items{display:grid;gap:10px}.item{display:flex;justify-content:space-between;align-items:center;gap:16px;border:1px solid var(--line);border-radius:9px;padding:14px}.item h3{font-size:1rem;margin:0 0 5px;overflow-wrap:anywhere}.item p{font-size:.8rem;color:var(--muted);margin:0;overflow-wrap:anywhere}.item-actions{display:flex;gap:8px;flex-shrink:0}.muted{color:var(--muted);font-size:.9rem}.notice{line-height:1.6;color:var(--muted)}@media(max-width:650px){.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.panel{padding:17px}.top{align-items:flex-start}.item{align-items:flex-start;flex-direction:column}.item-actions{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="top"><div><div class="eyebrow">Seuil Critique · espace privé</div><h1>Administration</h1><p class="muted">Gérer les publications de la collection.</p></div><a href="/" class="button">Voir le site ↗</a></header>
+  <section id="login-panel" class="panel">
+    <h2>Connexion</h2><p class="notice">L’accès est réservé à l’administrateur.</p>
+    <form id="login-form"><div class="field"><label for="password">Mot de passe administrateur</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="1024" /></div><div class="actions"><button class="primary" type="submit">Se connecter</button></div><p id="login-message" class="message" role="status"></p></form>
+  </section>
+  <section id="app-panel" class="hidden">
+    <section class="panel">
+      <div class="top"><div><div class="eyebrow">Nouvelle entrée</div><h2 id="form-title">Ajouter une publication</h2></div><button id="logout" type="button">Se déconnecter</button></div>
+      <form id="publication-form">
+        <input type="hidden" id="publication-id" />
+        <div class="form-grid">
+          <div class="field"><label for="title">Titre *</label><input id="title" required maxlength="200" /></div>
+          <div class="field"><label for="content_type">Type *</label><select id="content_type"><option value="video">Vidéo</option><option value="image">Image</option><option value="article">Article</option></select></div>
+          <div class="field full"><label for="description">Description</label><textarea id="description" maxlength="2000"></textarea></div>
+          <div class="field full"><label for="source_url">URL de la publication *</label><input id="source_url" type="url" required placeholder="https://…" maxlength="2048" /></div>
+          <div class="field full"><label for="thumbnail_url">URL de l’image / miniature (facultatif)</label><input id="thumbnail_url" type="url" placeholder="https://…" maxlength="2048" /></div>
+          <div class="field"><label for="published_at">Date et heure de publication</label><input id="published_at" type="datetime-local" /></div>
+        </div>
+        <div class="actions"><button class="primary" id="save-button" type="submit">Ajouter la publication</button><button id="cancel-edit" type="button" class="hidden">Annuler la modification</button></div><p id="form-message" class="message" role="status"></p>
+      </form>
+    </section>
+    <section class="panel"><div class="eyebrow">Collection</div><h2>Publications existantes</h2><p class="muted" id="list-count"></p><div id="items" class="items"><p class="muted">Chargement…</p></div><p id="list-message" class="message" role="status"></p></section>
+  </section>
+</main>
+<script>
+  const loginPanel = document.querySelector('#login-panel');
+  const appPanel = document.querySelector('#app-panel');
+  const loginForm = document.querySelector('#login-form');
+  const loginMessage = document.querySelector('#login-message');
+  const publicationForm = document.querySelector('#publication-form');
+  const formMessage = document.querySelector('#form-message');
+  const itemsContainer = document.querySelector('#items');
+  const listMessage = document.querySelector('#list-message');
+  const fields = ['title', 'content_type', 'description', 'source_url', 'thumbnail_url', 'published_at'];
+  let publications = [];
+
+  async function api(url, options = {}) {
+    const response = await fetch(url, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+    const data = response.status === 204 ? null : await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error || `Erreur HTTP ${response.status}`);
+    return data;
+  }
+
+  function showApp() { loginPanel.classList.add('hidden'); appPanel.classList.remove('hidden'); loadPublications(); }
+  function showLogin() { appPanel.classList.add('hidden'); loginPanel.classList.remove('hidden'); }
+
+  loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault(); loginMessage.textContent = 'Connexion…'; loginMessage.classList.remove('error');
+    try {
+      await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: document.querySelector('#password').value }) });
+      document.querySelector('#password').value = ''; showApp();
+    } catch (error) { loginMessage.textContent = error.message; loginMessage.classList.add('error'); }
+  });
+
+  document.querySelector('#logout').addEventListener('click', async () => {
+    try { await api('/api/admin/login', { method: 'DELETE' }); } catch {}
+    showLogin(); loginMessage.textContent = 'Déconnecté.';
+  });
+
+  function clearForm() {
+    publicationForm.reset(); document.querySelector('#publication-id').value = '';
+    document.querySelector('#form-title').textContent = 'Ajouter une publication';
+    document.querySelector('#save-button').textContent = 'Ajouter la publication';
+    document.querySelector('#cancel-edit').classList.add('hidden');
+    formMessage.textContent = ''; formMessage.classList.remove('error');
+  }
+  document.querySelector('#cancel-edit').addEventListener('click', clearForm);
+
+  publicationForm.addEventListener('submit', async (event) => {
+    event.preventDefault(); formMessage.textContent = 'Enregistrement…'; formMessage.classList.remove('error');
+    const id = document.querySelector('#publication-id').value;
+    const publishedValue = document.querySelector('#published_at').value;
+    const item = {
+      title: document.querySelector('#title').value,
+      content_type: document.querySelector('#content_type').value,
+      description: document.querySelector('#description').value,
+      source_url: document.querySelector('#source_url').value,
+      thumbnail_url: document.querySelector('#thumbnail_url').value,
+      published_at: publishedValue ? publishedValue.replace('T', ' ') + (publishedValue.length === 16 ? ':00' : '') : '',
+    };
+    if (id) item.id = Number(id);
+    try {
+      await api('/api/admin/publications', { method: id ? 'PATCH' : 'POST', body: JSON.stringify(item) });
+      clearForm(); formMessage.textContent = id ? 'Publication modifiée.' : 'Publication ajoutée.';
+      await loadPublications();
+    } catch (error) { formMessage.textContent = error.message; formMessage.classList.add('error'); }
+  });
+
+  async function loadPublications() {
+    itemsContainer.replaceChildren(document.createTextNode('Chargement…'));
+    listMessage.textContent = ''; listMessage.classList.remove('error');
+    try {
+      publications = await api('/api/admin/publications');
+      document.querySelector('#list-count').textContent = `${publications.length} publication${publications.length === 1 ? '' : 's'}`;
+      itemsContainer.replaceChildren();
+      if (!publications.length) { itemsContainer.append(document.createTextNode('Aucune publication.')); return; }
+      for (const item of publications) {
+        const row = document.createElement('article'); row.className = 'item';
+        const info = document.createElement('div');
+        const title = document.createElement('h3'); title.textContent = item.title;
+        const meta = document.createElement('p');
+        const labels = { video: 'Vidéo', image: 'Image', article: 'Article' };
+        meta.textContent = `${labels[item.content_type] || item.content_type} · ${item.published_at || 'Date inconnue'}`;
+        info.append(title, meta);
+        const actions = document.createElement('div'); actions.className = 'item-actions';
+        const edit = document.createElement('button'); edit.textContent = 'Modifier'; edit.addEventListener('click', () => editPublication(item));
+        const remove = document.createElement('button'); remove.className = 'danger'; remove.textContent = 'Supprimer'; remove.addEventListener('click', () => deletePublication(item));
+        actions.append(edit, remove); row.append(info, actions); itemsContainer.append(row);
+      }
+    } catch (error) {
+      itemsContainer.replaceChildren(); listMessage.textContent = error.message; listMessage.classList.add('error');
+      if (error.message.includes('Authentification')) showLogin();
+    }
+  }
+
+  function editPublication(item) {
+    document.querySelector('#publication-id').value = item.id;
+    for (const field of fields) {
+      const element = document.querySelector(`#${field}`);
+      let value = item[field] ?? '';
+      if (field === 'published_at' && value) value = value.replace(' ', 'T').slice(0, 16);
+      element.value = value;
+    }
+    document.querySelector('#form-title').textContent = 'Modifier la publication';
+    document.querySelector('#save-button').textContent = 'Enregistrer les modifications';
+    document.querySelector('#cancel-edit').classList.remove('hidden');
+    formMessage.textContent = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function deletePublication(item) {
+    if (!confirm(`Supprimer « ${item.title} » ? Cette action est définitive.`)) return;
+    try { await api('/api/admin/publications', { method: 'DELETE', body: JSON.stringify({ id: item.id }) }); await loadPublications(); }
+    catch (error) { listMessage.textContent = error.message; listMessage.classList.add('error'); }
+  }
+
+  api('/api/admin/publications').then(showApp).catch(() => showLogin());
+</script>
+</body>
+</html>
