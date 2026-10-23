@@ -67,4 +67,4 @@ export function sameOrigin(request: Request): boolean {
   } catch {
     return false;
   }
-}
+} 
