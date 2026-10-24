@@ -1,5 +1,4 @@
-import type { APIRoute } from 'astro';
-import { env } from 'cloudflare:workers';
+import type { APIRoute, App } from 'astro';
 import {
   createAdminCookie,
   clearAdminCookie,
@@ -9,8 +8,9 @@ import {
 
 export const prerender = false;
 
-function getAdminPassword(): string | undefined {
-  const value = env.ADMIN_PASSWORD;
+function getAdminPassword(locals: App.Locals): string | undefined {
+  const env = (locals as any).runtime?.env;
+  const value = env?.ADMIN_PASSWORD;
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
@@ -24,8 +24,8 @@ function jsonError(message: string, status: number): Response {
   });
 }
 
-export const POST: APIRoute = async ({ request }) => {
-  const secret = getAdminPassword();
+export const POST: APIRoute = async ({ request, locals }) => {
+  const secret = getAdminPassword(locals);
 
   if (!secret) {
     return jsonError(
@@ -59,10 +59,10 @@ export const POST: APIRoute = async ({ request }) => {
   });
 };
 
-export const DELETE: APIRoute = async ({ request }) => {
+export const DELETE: APIRoute = async ({ request, locals }) => {
   if (!sameOrigin(request)) return new Response(null, { status: 403 });
 
-  const secret = getAdminPassword();
+  const secret = getAdminPassword(locals);
   if (!secret || !(await isAdminRequest(request, secret))) {
     return new Response(null, { status: 401 });
   }
